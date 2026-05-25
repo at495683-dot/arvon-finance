@@ -13,13 +13,15 @@ function App() {
     weeks: "",
   });
 
-  // ✅ load
+  // Load data
   useEffect(() => {
     const saved = localStorage.getItem("financeData");
-    if (saved) setCustomers(JSON.parse(saved));
+    if (saved) {
+      setCustomers(JSON.parse(saved));
+    }
   }, []);
 
-  // ✅ save
+  // Save data
   useEffect(() => {
     localStorage.setItem("financeData", JSON.stringify(customers));
   }, [customers]);
@@ -28,11 +30,11 @@ function App() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ add customer
+  // Add customer
   const addCustomer = () => {
-    const P = Number(form.amount || 0);
-    const R = Number(form.interest || 0);
-    const N = Number(form.weeks || 0);
+    const P = Number(form.amount);
+    const R = Number(form.interest);
+    const N = Number(form.weeks);
 
     if (!form.name || !P || !N) return;
 
@@ -40,7 +42,9 @@ function App() {
     const weekly = total / N;
 
     const newCustomer = {
-      ...form,
+      name: form.name,
+      contact: form.contact,
+      weeks: N,
       totalLoan: total,
       weekly: weekly,
       paid: 0,
@@ -59,28 +63,28 @@ function App() {
     });
   };
 
-  // ✅ payment
+  // Add payment
   const addPayment = (index) => {
     const updated = [...customers];
     const c = updated[index];
 
-    c.paid += Number(c.weekly || 0);
+    const amt = Number(c.weekly) || 0;
+
+    c.paid += amt;
     c.emiCount += 1;
 
     c.history.push({
       date: new Date().toLocaleDateString(),
-      amount: Number(c.weekly || 0),
+      amount: amt,
     });
 
     setCustomers(updated);
   };
 
-  // ======================
-  // 👉 CUSTOMER DETAIL PAGE
-  // ======================
+  // ================= DETAIL PAGE =================
   if (selected !== null) {
     const c = customers[selected];
-    const balance = Number(c.totalLoan || 0) - Number(c.paid || 0);
+    const balance = (c.totalLoan || 0) - (c.paid || 0);
 
     return (
       <div style={{ padding: 20 }}>
@@ -102,38 +106,66 @@ function App() {
         <p>Paid EMI: {Number(c.emiCount || 0)}</p>
         <p>Outstanding: ₹{Number(balance || 0).toFixed(2)}</p>
         <p>
-          Status: {balance <= 0 ? "✅ Closed" : "🟢 Active"}
+          Status: {balance <= 0 ? "Closed" : "Active"}
         </p>
 
         <button onClick={() => addPayment(selected)}>
-          ➕ Add Payment
+          Add Payment
         </button>
 
         <hr />
 
         <h3>Payment History</h3>
         {c.history.length === 0 && <p>No payments yet</p>}
+
         {c.history.map((h, i) => (
           <div key={i}>
-            {h.date} → ₹{Number(h.amount || 0)}
+            {h.date} → ₹{h.amount}
           </div>
         ))}
       </div>
     );
   }
 
-  // ======================
-  // 👉 MAIN PAGE
-  // ======================
+  // ================= MAIN PAGE =================
   return (
     <div style={{ padding: 20 }}>
       <h1>Arvon Finance 🚀</h1>
 
-      <input name="name" placeholder="Name" value={form.name} onChange={handleChange} /><br /><br />
-      <input name="contact" placeholder="Contact" value={form.contact} onChange={handleChange} /><br /><br />
-      <input name="amount" placeholder="Loan Amount" value={form.amount} onChange={handleChange} /><br /><br />
-      <input name="interest" placeholder="Interest %" value={form.interest} onChange={handleChange} /><br /><br />
-      <input name="weeks" placeholder="Weeks" value={form.weeks} onChange={handleChange} /><br /><br />
+      <input
+        name="name"
+        placeholder="Name"
+        value={form.name}
+        onChange={handleChange}
+      /><br /><br />
+
+      <input
+        name="contact"
+        placeholder="Contact"
+        value={form.contact}
+        onChange={handleChange}
+      /><br /><br />
+
+      <input
+        name="amount"
+        placeholder="Loan Amount"
+        value={form.amount}
+        onChange={handleChange}
+      /><br /><br />
+
+      <input
+        name="interest"
+        placeholder="Interest %"
+        value={form.interest}
+        onChange={handleChange}
+      /><br /><br />
+
+      <input
+        name="weeks"
+        placeholder="Weeks"
+        value={form.weeks}
+        onChange={handleChange}
+      /><br /><br />
 
       <button onClick={addCustomer}>Add Customer</button>
 
@@ -142,13 +174,13 @@ function App() {
       <h2>Customers</h2>
 
       {customers.map((c, i) => (
-        <div key={i} style={{ marginBottom: 10 }}>
-          <b
+        <div key={i}>
+          <span
             onClick={() => setSelected(i)}
             style={{ cursor: "pointer", color: "blue" }}
           >
             {c.name}
-          </b>
+          </span>
         </div>
       ))}
     </div>
