@@ -8,8 +8,8 @@ function App() {
   const [weeks, setWeeks] = useState("");
   const [emi, setEmi] = useState(null);
   const [customers, setCustomers] = useState([]);
+  const [search, setSearch] = useState("");
 
-  // Weekly Calculation
   const calculateEMI = () => {
     const P = parseFloat(amount);
     const R = parseFloat(interest) / 100;
@@ -23,7 +23,6 @@ function App() {
     setEmi(weekly.toFixed(2));
   };
 
-  // Save Customer
   const saveCustomer = () => {
     if (!name || !emi) return;
 
@@ -43,23 +42,25 @@ function App() {
     setEmi(null);
   };
 
-  // Add Payment
   const addPayment = (index) => {
     const updated = [...customers];
     updated[index].paid += updated[index].weekly;
     setCustomers(updated);
   };
 
-  // Delete Customer
   const deleteCustomer = (index) => {
     const updated = customers.filter((_, i) => i !== index);
     setCustomers(updated);
   };
 
-  // 🔥 Summary Calculation
   const totalGiven = customers.reduce((sum, c) => sum + c.amount, 0);
   const totalCollected = customers.reduce((sum, c) => sum + c.paid, 0);
   const profit = totalCollected - totalGiven;
+
+  // 🔍 Filter customers
+  const filteredCustomers = customers.filter(c =>
+    c.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div style={{ padding: 20 }}>
@@ -100,7 +101,6 @@ function App() {
 
       <hr />
 
-      {/* 🔥 SUMMARY */}
       <h2>Summary</h2>
       <p>Total Given: ₹{totalGiven}</p>
       <p>Total Collected: ₹{totalCollected}</p>
@@ -108,10 +108,16 @@ function App() {
 
       <hr />
 
-      {/* 👇 CUSTOMERS */}
+      {/* 🔍 SEARCH */}
+      <input
+        placeholder="Search Customer"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      /><br /><br />
+
       <h2>Customers</h2>
 
-      {customers.map((c, i) => {
+      {filteredCustomers.map((c, i) => {
         const balance = c.amount - c.paid;
 
         return (
