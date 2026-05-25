@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 
 function App() {
   const [customers, setCustomers] = useState([]);
-  const [selected, setSelected] = useState(null); // 👈 page switch
+  const [selected, setSelected] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -13,11 +13,13 @@ function App() {
     weeks: "",
   });
 
+  // ✅ load
   useEffect(() => {
     const saved = localStorage.getItem("financeData");
     if (saved) setCustomers(JSON.parse(saved));
   }, []);
 
+  // ✅ save
   useEffect(() => {
     localStorage.setItem("financeData", JSON.stringify(customers));
   }, [customers]);
@@ -26,10 +28,11 @@ function App() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // ✅ add customer
   const addCustomer = () => {
-    const P = parseFloat(form.amount);
-    const R = parseFloat(form.interest);
-    const N = parseFloat(form.weeks);
+    const P = Number(form.amount || 0);
+    const R = Number(form.interest || 0);
+    const N = Number(form.weeks || 0);
 
     if (!form.name || !P || !N) return;
 
@@ -39,37 +42,45 @@ function App() {
     const newCustomer = {
       ...form,
       totalLoan: total,
-      weekly,
+      weekly: weekly,
       paid: 0,
       emiCount: 0,
-      history: []
+      history: [],
     };
 
     setCustomers([...customers, newCustomer]);
-    setForm({ name: "", contact: "", amount: "", interest: "", weeks: "" });
+
+    setForm({
+      name: "",
+      contact: "",
+      amount: "",
+      interest: "",
+      weeks: "",
+    });
   };
 
+  // ✅ payment
   const addPayment = (index) => {
     const updated = [...customers];
     const c = updated[index];
 
-    c.paid += c.weekly;
+    c.paid += Number(c.weekly || 0);
     c.emiCount += 1;
 
     c.history.push({
       date: new Date().toLocaleDateString(),
-      amount: c.weekly
+      amount: Number(c.weekly || 0),
     });
 
     setCustomers(updated);
   };
 
-  // =======================
+  // ======================
   // 👉 CUSTOMER DETAIL PAGE
-  // =======================
+  // ======================
   if (selected !== null) {
     const c = customers[selected];
-    const balance = c.totalLoan - c.paid;
+    const balance = Number(c.totalLoan || 0) - Number(c.paid || 0);
 
     return (
       <div style={{ padding: 20 }}>
@@ -81,18 +92,17 @@ function App() {
         <hr />
 
         <h3>Loan Info</h3>
-        <p>Total Loan: ₹{c.totalLoan}</p>
-        <p>Weekly EMI: ₹{c.weekly ? c.weekly.toFixed(2) : 0}</p>
-        <p>Total EMI: {c.weeks || 0}</p>
+        <p>Total Loan: ₹{Number(c.totalLoan || 0)}</p>
+        <p>Weekly EMI: ₹{Number(c.weekly || 0).toFixed(2)}</p>
+        <p>Total EMI: {Number(c.weeks || 0)}</p>
 
         <hr />
 
         <h3>Status</h3>
-        <p>Paid EMI: {c.emiCount}</p>
-        <p>Outstanding: ₹{balance ? balance.toFixed(2) : 0}</p>
+        <p>Paid EMI: {Number(c.emiCount || 0)}</p>
+        <p>Outstanding: ₹{Number(balance || 0).toFixed(2)}</p>
         <p>
-          Status:{" "}
-          {balance <= 0 ? "✅ Closed" : "🟢 Active"}
+          Status: {balance <= 0 ? "✅ Closed" : "🟢 Active"}
         </p>
 
         <button onClick={() => addPayment(selected)}>
@@ -102,18 +112,19 @@ function App() {
         <hr />
 
         <h3>Payment History</h3>
+        {c.history.length === 0 && <p>No payments yet</p>}
         {c.history.map((h, i) => (
           <div key={i}>
-            {h.date} → ₹{h.amount}
+            {h.date} → ₹{Number(h.amount || 0)}
           </div>
         ))}
       </div>
     );
   }
 
-  // =======================
+  // ======================
   // 👉 MAIN PAGE
-  // =======================
+  // ======================
   return (
     <div style={{ padding: 20 }}>
       <h1>Arvon Finance 🚀</h1>
@@ -132,7 +143,10 @@ function App() {
 
       {customers.map((c, i) => (
         <div key={i} style={{ marginBottom: 10 }}>
-          <b onClick={() => setSelected(i)} style={{ cursor: "pointer" }}>
+          <b
+            onClick={() => setSelected(i)}
+            style={{ cursor: "pointer", color: "blue" }}
+          >
             {c.name}
           </b>
         </div>
