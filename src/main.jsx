@@ -2,133 +2,100 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
 function App() {
-  const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
-
-  const [stamp, setStamp] = useState("");
-  const [fileCharge, setFileCharge] = useState("");
-  const [insurance, setInsurance] = useState("");
-
   const [customers, setCustomers] = useState([]);
 
-  // Calculate total loan
-  const calculateTotal = () => {
-    return (
-      parseFloat(amount || 0) +
-      parseFloat(stamp || 0) +
-      parseFloat(fileCharge || 0) +
-      parseFloat(insurance || 0)
-    );
+  const [form, setForm] = useState({
+    cityNumber: "",
+    name: "",
+    contact: "",
+    dob: "",
+    adhar: "",
+    pan: "",
+    husbandName: "",
+    husbandDob: "",
+    husbandContact: "",
+    childName: "",
+    childContact: "",
+    childDob: "",
+    currentAddress: "",
+    permanentAddress: "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Save customer
   const saveCustomer = () => {
-    const total = calculateTotal();
+    if (!form.name || !form.contact) return;
 
-    if (!name || !total) return;
+    setCustomers([...customers, form]);
 
-    const newCustomer = {
-      name,
-      amount: parseFloat(amount),
-      stamp: parseFloat(stamp || 0),
-      fileCharge: parseFloat(fileCharge || 0),
-      insurance: parseFloat(insurance || 0),
-      totalLoan: total,
-
-      // 👇 EMI slabs
-      emiPlan: [
-        { from: 1, to: 15, amount: 500 },
-        { from: 16, to: 24, amount: 400 }
-      ],
-
-      paid: 0
-    };
-
-    setCustomers([...customers, newCustomer]);
-
-    setName("");
-    setAmount("");
-    setStamp("");
-    setFileCharge("");
-    setInsurance("");
-  };
-
-  // Add payment
-  const addPayment = (index) => {
-    const updated = [...customers];
-
-    // simple: always add current slab EMI (for demo)
-    updated[index].paid += 500;
-
-    setCustomers(updated);
+    setForm({
+      cityNumber: "",
+      name: "",
+      contact: "",
+      dob: "",
+      adhar: "",
+      pan: "",
+      husbandName: "",
+      husbandDob: "",
+      husbandContact: "",
+      childName: "",
+      childContact: "",
+      childDob: "",
+      currentAddress: "",
+      permanentAddress: "",
+    });
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Arvon Finance 🚀</h1>
+    <div style={{ padding: 20, fontFamily: "Arial" }}>
+      <h1>Arvon Finance - Customer Add</h1>
 
-      <input
-        placeholder="Customer Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      /><br /><br />
+      <div style={{ background: "#f2f2f2", padding: 20, borderRadius: 10 }}>
 
-      <input
-        placeholder="Loan Amount"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-      /><br /><br />
+        <h3>Basic Details</h3>
 
-      <input
-        placeholder="Stamp Duty"
-        value={stamp}
-        onChange={(e) => setStamp(e.target.value)}
-      /><br /><br />
+        <input name="cityNumber" placeholder="City Number" value={form.cityNumber} onChange={handleChange} /><br /><br />
+        <input name="name" placeholder="Customer Name" value={form.name} onChange={handleChange} /><br /><br />
+        <input name="contact" placeholder="Customer Contact" value={form.contact} onChange={handleChange} /><br /><br />
+        <input name="dob" placeholder="Customer DOB" value={form.dob} onChange={handleChange} /><br /><br />
+        <input name="adhar" placeholder="Aadhar Number" value={form.adhar} onChange={handleChange} /><br /><br />
+        <input name="pan" placeholder="PAN Number" value={form.pan} onChange={handleChange} /><br /><br />
 
-      <input
-        placeholder="File Charge"
-        value={fileCharge}
-        onChange={(e) => setFileCharge(e.target.value)}
-      /><br /><br />
+        <h3>Husband Details</h3>
 
-      <input
-        placeholder="Insurance"
-        value={insurance}
-        onChange={(e) => setInsurance(e.target.value)}
-      /><br /><br />
+        <input name="husbandName" placeholder="Husband Name" value={form.husbandName} onChange={handleChange} /><br /><br />
+        <input name="husbandDob" placeholder="Husband DOB" value={form.husbandDob} onChange={handleChange} /><br /><br />
+        <input name="husbandContact" placeholder="Husband Contact" value={form.husbandContact} onChange={handleChange} /><br /><br />
 
-      <button onClick={saveCustomer}>Add Customer</button>
+        <h3>Child Details (Optional)</h3>
+
+        <input name="childName" placeholder="Child Name" value={form.childName} onChange={handleChange} /><br /><br />
+        <input name="childContact" placeholder="Child Contact" value={form.childContact} onChange={handleChange} /><br /><br />
+        <input name="childDob" placeholder="Child DOB" value={form.childDob} onChange={handleChange} /><br /><br />
+
+        <h3>Address</h3>
+
+        <textarea name="currentAddress" placeholder="Current Address" value={form.currentAddress} onChange={handleChange} /><br /><br />
+        <textarea name="permanentAddress" placeholder="Permanent Address" value={form.permanentAddress} onChange={handleChange} /><br /><br />
+
+        <button onClick={saveCustomer} style={{ padding: 10, background: "black", color: "white" }}>
+          Add Customer
+        </button>
+      </div>
 
       <hr />
 
-      <h2>Customers</h2>
+      <h2>Customer List</h2>
 
-      {customers.map((c, i) => {
-        const balance = c.totalLoan - c.paid;
-
-        return (
-          <div key={i} style={{ marginBottom: 15 }}>
-            <b>{c.name}</b> <br />
-
-            Loan: ₹{c.amount} <br />
-            Charges: ₹{c.stamp + c.fileCharge + c.insurance} <br />
-            Total Loan: ₹{c.totalLoan} <br />
-
-            <b>EMI Plan:</b><br />
-            {c.emiPlan.map((e, idx) => (
-              <div key={idx}>
-                {e.from}–{e.to} → ₹{e.amount}
-              </div>
-            ))}
-
-            <br />
-            Paid: ₹{c.paid} <br />
-            Balance: ₹{balance} <br />
-
-            <button onClick={() => addPayment(i)}>+ Payment</button>
-          </div>
-        );
-      })}
+      {customers.map((c, i) => (
+        <div key={i} style={{ marginBottom: 15, borderBottom: "1px solid #ccc" }}>
+          <b>{c.name}</b> ({c.cityNumber}) <br />
+          Contact: {c.contact} <br />
+          Address: {c.currentAddress}
+        </div>
+      ))}
     </div>
   );
 }
