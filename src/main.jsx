@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 
 function App() {
@@ -9,6 +9,19 @@ function App() {
   const [emi, setEmi] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState("");
+
+  // 🔥 LOAD DATA (page open pe)
+  useEffect(() => {
+    const saved = localStorage.getItem("customers");
+    if (saved) {
+      setCustomers(JSON.parse(saved));
+    }
+  }, []);
+
+  // 🔥 SAVE DATA (jab change ho)
+  useEffect(() => {
+    localStorage.setItem("customers", JSON.stringify(customers));
+  }, [customers]);
 
   const calculateEMI = () => {
     const P = parseFloat(amount);
@@ -57,7 +70,6 @@ function App() {
   const totalCollected = customers.reduce((sum, c) => sum + c.paid, 0);
   const profit = totalCollected - totalGiven;
 
-  // 🔍 Filter customers
   const filteredCustomers = customers.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -108,7 +120,6 @@ function App() {
 
       <hr />
 
-      {/* 🔍 SEARCH */}
       <input
         placeholder="Search Customer"
         value={search}
