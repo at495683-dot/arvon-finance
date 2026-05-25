@@ -82,14 +82,14 @@ function App() {
 
         <h3>Loan Info</h3>
         <p>Total Loan: ₹{c.totalLoan}</p>
-        <p>Weekly EMI: ₹{c.weekly.toFixed(2)}</p>
-        <p>Total EMI: {c.weeks}</p>
+        <p>Weekly EMI: ₹{c.weekly ? c.weekly.toFixed(2) : 0}</p>
+        <p>Total EMI: {c.weeks || 0}</p>
 
         <hr />
 
         <h3>Status</h3>
         <p>Paid EMI: {c.emiCount}</p>
-        <p>Outstanding: ₹{balance.toFixed(2)}</p>
+        <p>Outstanding: ₹{balance ? balance.toFixed(2) : 0}</p>
         <p>
           Status:{" "}
           {balance <= 0 ? "✅ Closed" : "🟢 Active"}
