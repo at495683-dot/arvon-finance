@@ -1,78 +1,67 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
 function App() {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
-  const [interest, setInterest] = useState("");
-  const [weeks, setWeeks] = useState("");
-  const [emi, setEmi] = useState(null);
+
+  const [stamp, setStamp] = useState("");
+  const [fileCharge, setFileCharge] = useState("");
+  const [insurance, setInsurance] = useState("");
+
   const [customers, setCustomers] = useState([]);
-  const [search, setSearch] = useState("");
 
-  // 🔥 LOAD DATA (page open pe)
-  useEffect(() => {
-    const saved = localStorage.getItem("customers");
-    if (saved) {
-      setCustomers(JSON.parse(saved));
-    }
-  }, []);
-
-  // 🔥 SAVE DATA (jab change ho)
-  useEffect(() => {
-    localStorage.setItem("customers", JSON.stringify(customers));
-  }, [customers]);
-
-  const calculateEMI = () => {
-    const P = parseFloat(amount);
-    const R = parseFloat(interest) / 100;
-    const N = parseFloat(weeks);
-
-    if (!P || !N) return;
-
-    const total = P + (P * R);
-    const weekly = total / N;
-
-    setEmi(weekly.toFixed(2));
+  // Calculate total loan
+  const calculateTotal = () => {
+    return (
+      parseFloat(amount || 0) +
+      parseFloat(stamp || 0) +
+      parseFloat(fileCharge || 0) +
+      parseFloat(insurance || 0)
+    );
   };
 
+  // Save customer
   const saveCustomer = () => {
-    if (!name || !emi) return;
+    const total = calculateTotal();
+
+    if (!name || !total) return;
 
     const newCustomer = {
       name,
       amount: parseFloat(amount),
-      weekly: parseFloat(emi),
-      paid: 0,
+      stamp: parseFloat(stamp || 0),
+      fileCharge: parseFloat(fileCharge || 0),
+      insurance: parseFloat(insurance || 0),
+      totalLoan: total,
+
+      // 👇 EMI slabs
+      emiPlan: [
+        { from: 1, to: 15, amount: 500 },
+        { from: 16, to: 24, amount: 400 }
+      ],
+
+      paid: 0
     };
 
     setCustomers([...customers, newCustomer]);
 
     setName("");
     setAmount("");
-    setInterest("");
-    setWeeks("");
-    setEmi(null);
+    setStamp("");
+    setFileCharge("");
+    setInsurance("");
   };
 
+  // Add payment
   const addPayment = (index) => {
     const updated = [...customers];
-    updated[index].paid += updated[index].weekly;
+
+    // simple: always add current slab EMI (for demo)
+    updated[index].paid += 500;
+
     setCustomers(updated);
   };
-
-  const deleteCustomer = (index) => {
-    const updated = customers.filter((_, i) => i !== index);
-    setCustomers(updated);
-  };
-
-  const totalGiven = customers.reduce((sum, c) => sum + c.amount, 0);
-  const totalCollected = customers.reduce((sum, c) => sum + c.paid, 0);
-  const profit = totalCollected - totalGiven;
-
-  const filteredCustomers = customers.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div style={{ padding: 20 }}>
@@ -91,56 +80,52 @@ function App() {
       /><br /><br />
 
       <input
-        placeholder="Interest (%)"
-        value={interest}
-        onChange={(e) => setInterest(e.target.value)}
+        placeholder="Stamp Duty"
+        value={stamp}
+        onChange={(e) => setStamp(e.target.value)}
       /><br /><br />
 
       <input
-        placeholder="Weeks"
-        value={weeks}
-        onChange={(e) => setWeeks(e.target.value)}
+        placeholder="File Charge"
+        value={fileCharge}
+        onChange={(e) => setFileCharge(e.target.value)}
       /><br /><br />
-
-      <button onClick={calculateEMI}>Calculate Weekly</button>
-
-      {emi && (
-        <>
-          <h2>Weekly Payment: ₹{emi}</h2>
-          <button onClick={saveCustomer}>Save</button>
-        </>
-      )}
-
-      <hr />
-
-      <h2>Summary</h2>
-      <p>Total Given: ₹{totalGiven}</p>
-      <p>Total Collected: ₹{totalCollected}</p>
-      <p>Profit: ₹{profit}</p>
-
-      <hr />
 
       <input
-        placeholder="Search Customer"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Insurance"
+        value={insurance}
+        onChange={(e) => setInsurance(e.target.value)}
       /><br /><br />
+
+      <button onClick={saveCustomer}>Add Customer</button>
+
+      <hr />
 
       <h2>Customers</h2>
 
-      {filteredCustomers.map((c, i) => {
-        const balance = c.amount - c.paid;
+      {customers.map((c, i) => {
+        const balance = c.totalLoan - c.paid;
 
         return (
-          <div key={i} style={{ marginBottom: 10 }}>
+          <div key={i} style={{ marginBottom: 15 }}>
             <b>{c.name}</b> <br />
+
             Loan: ₹{c.amount} <br />
-            Weekly: ₹{c.weekly} <br />
+            Charges: ₹{c.stamp + c.fileCharge + c.insurance} <br />
+            Total Loan: ₹{c.totalLoan} <br />
+
+            <b>EMI Plan:</b><br />
+            {c.emiPlan.map((e, idx) => (
+              <div key={idx}>
+                {e.from}–{e.to} → ₹{e.amount}
+              </div>
+            ))}
+
+            <br />
             Paid: ₹{c.paid} <br />
             Balance: ₹{balance} <br />
 
-            <button onClick={() => addPayment(i)}>+ Paid</button>
-            <button onClick={() => deleteCustomer(i)}>Delete</button>
+            <button onClick={() => addPayment(i)}>+ Payment</button>
           </div>
         );
       })}
